@@ -7,26 +7,21 @@ from nav2_msgs.action import NavigateToPose
 from geometry_msgs.msg import Twist, PoseStamped
 from std_msgs.msg import String
 
+from rclpy.duration import Duration
+
+
 # 목적지 정의
 sectors = {
-    "1": (-1.8,  1.8),  # A
-    "2": ( 1.8,  1.8),  # B
-    "3": ( 1.8, -1.8),  # C
-    "4": (-1.8, -1.8),  # D
-    "5": ( 0.0, -0.75),  # HOME
+    "1": (-1.8,  1.8,  1.0),  # A
+    "2": ( 1.8,  1.8,  1.0),  # B
+    "3": ( 1.8, -1.8,  1.0),  # C
+    "4": (-1.8, -1.8,  1.0),  # D
+    "5": ( 0.0, -0.75, 1.0),  # HOME
 }
         
-# sectors = {
-#     "1": (-1.8,  1.8,  0.0),  # A
-#     "2": ( 1.8,  1.8,  0.0),  # B
-#     "3": ( 1.8, -1.8,  0.0),  # C
-#     "4": (-1.8, -1.8,  0.0),  # D
-#     "5": ( 0.0, -0.75, 0.0),  # HOME
-# }
-        
-class NavigationController(Node):
+class NavigationTest(Node):
     def __init__(self):
-        super().__init__('navigation_controller')
+        super().__init__('navigation_test')
 
         # Navigation2 액션 클라이언트
         self.action_client = ActionClient(self, NavigateToPose,'/navigate_to_pose')
@@ -37,34 +32,91 @@ class NavigationController(Node):
         # 사람 감지 토픽 구독
         self.sub = self.create_subscription(String, '/object_detected', self.detect_callback, 10)
         
-        self.get_logger().info("Navigation Controller Ready")
+        self.get_logger().info("Navigation Test Ready")
         
-        # 0.5초마다 콜백 실행(디버깅)
-        # self.timer = self.create_timer(0.5, self.timer_callback)
-
+        self.goal_pose = None
+        
+        self.last_log_time = self.get_clock().now()
+        self.log_interval = Duration(seconds = 0.5)
     
-    # # 디버깅을 위한 타이머 콜백 함수
-    # def timer_callback(self):
-        # self.get_logger().info(f"test")
+    # 사람 감지 콜백
+    def detect_callback(self, msg):
+        # self.get_logger().info(f"Person: {msg.data}, dectected:{self.is_person_detected}, goal_pose:{self.goal_pose}")
         
+        # 목표 위치가 있고 도착하지 않은 경우
+        
+        if msg.data == "mannequin":
+            self.cancel_goal()
+        
+        else:
+            pass
+            # self.resume_goal()
+                        
 
-    def send_goal(self, x, y):
-        goal_msg = NavigateToPose.Goal()
+    # 목표 위치로 이동
+    def send_goal(self, x, y, w):
+        self.goal_pose = (x, y, w)
         
+        goal_msg = NavigateToPose.Goal()
         goal_msg.pose = PoseStamped()
         goal_msg.pose.header.frame_id = 'map'
         goal_msg.pose.header.stamp = self.get_clock().now().to_msg()
         goal_msg.pose.pose.position.x = x
         goal_msg.pose.pose.position.y = y
-        goal_msg.pose.pose.orientation.w = 1.0  # 단순히 정방향
+        goal_msg.pose.pose.orientation.w = w
 
         self.action_client.wait_for_server()
-        self._send_future = self.action_client.send_goal_async(goal_msg)
+        self._send_goal_future = self.action_client.send_goal_async(
+            goal_msg,
+            feedback_callback = self.feedback_callback
+        )
+
+        self._send_goal_future.add_done_callback(self.goal_response_callback)
         
-        self.get_logger().info(f"목표 좌표 ({x}, {y})로 이동 명령 전송")
-        self.get_logger().info(f"_send_future: {self._send_future}")
+    
+    def feedback_callback(self, feedback_msg):
+        current_time = self.get_clock().now()
         
+        if (current_time - self.last_log_time) < self.log_interval:
+            return
         
+        self.last_log_time = current_time
+        
+        feedback = feedback_msg.feedback
+        current_x = feedback.current_pose.pose.position.x
+        current_y = feedback.current_pose.pose.position.y
+        rem_distance = feedback.distance_remaining
+        rem_time = feedback.estimated_time_remaining.sec    
+    
+        # 터미널에 실시간 로그 출력
+        self.get_logger().info(
+            f"현재 위치: ({current_x:.2f}, {current_y:.2f}) | "
+            f"남은 거리: {rem_distance:.2f}m | "
+            f"예상 남은 시간: {rem_time}초"
+        )
+        
+     
+    def goal_response_callback(self, future):
+        goal_handle = future.result()
+        
+        if not goal_handle.accepted:
+            self.get_logger().info('목표가 거절되었습니다.')
+            return
+
+        self.get_logger().info('목표가 승인되었습니다. 이동을 시작합니다.')
+        self._get_result_future = goal_handle.get_result_async()
+        self._get_result_future.add_done_callback(self.get_result_callback)
+        
+     
+    def get_result_callback(self, future):
+        result = future.result().result
+        status = future.result().status
+        
+        # 대개 완수되면 status 코드가 4(STATUS_SUCCEEDED)가 됩니다.
+        self.get_logger().info(f'최종 결과 수신 - 상태 코드: {status}')
+        
+              
+     # 목표 이동 취소   
     def cancel_goal(self):        
         if hasattr(self, "_send_future"):
             goal_handle = self._send_future.result()
@@ -72,15 +124,17 @@ class NavigationController(Node):
             if goal_handle:
                 goal_handle.cancel_goal_async()
                 self.get_logger().info("현재 이동 취소")
-        
-    # 사람 감지 콜백
-    def detect_callback(self, msg):
-        self.get_logger().info(f"사람 감지 여부: {msg.data}")
 
+
+    # 취소된 목표 위치로 이동 재개
+    def resume_goal(self):
+        x, y, yaw = self.goal_pose
+        self.get_logger().info(f"Resume Goal → ({x}, {y}, yaw={yaw})")
+        self.send_goal(x, y, yaw)
 
 def main():
     rclpy.init()
-    node = NavigationController()
+    node = NavigationTest()
     
      # spin을 별도 스레드에서 실행
     spin_thread = threading.Thread(target=rclpy.spin, args=(node,), daemon=True)
@@ -92,8 +146,8 @@ def main():
         key = input("\n[1-5] Goal  [c] Cancel  [q] Quit : ")
         
         if key in sectors:
-            x, y = sectors[key]
-            node.send_goal(x, y)
+            x, y, w = sectors[key]
+            node.send_goal(x, y, w)
         elif key == "c":
             node.cancel_goal()
         elif key == "q":
