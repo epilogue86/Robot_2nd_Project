@@ -3,20 +3,22 @@ import threading
 
 from rclpy.node import Node
 from rclpy.action import ActionClient
+
 from nav2_msgs.action import NavigateToPose
 from geometry_msgs.msg import Twist, PoseStamped
 from std_msgs.msg import String
+from action_msgs.msg import GoalStatus
 
 from rclpy.duration import Duration
 
 
 # 목적지 정의
 sectors = {
-    "1": (-1.8,  1.8,  1.0),  # A
-    "2": ( 1.8,  1.8,  1.0),  # B
-    "3": ( 1.8, -1.8,  1.0),  # C
-    "4": (-1.8, -1.8,  1.0),  # D
-    "5": ( 0.0, -0.75, 1.0),  # HOME
+    "1": (  0.02,  2.42, 1.0),  # A
+    "2": (  4.02,  2.54, 1.0),  # B
+    "3": (  4.16, -1.66, 1.0),  # C
+    "4": ( -0.03, -1.64, 1.0),  # D
+    "5": (  2.03, -0.36, 1.0),  # HOME
 }
         
 class NavigationTest(Node):
@@ -34,10 +36,13 @@ class NavigationTest(Node):
         
         self.get_logger().info("Navigation Test Ready")
         
+        self._goal_handle = None
+        self._send_goal_future = None
+        
         self.goal_pose = None
         
         self.last_log_time = self.get_clock().now()
-        self.log_interval = Duration(seconds = 0.5)
+        self.log_interval = Duration(seconds = 1)
     
     # 사람 감지 콜백
     def detect_callback(self, msg):
@@ -46,15 +51,19 @@ class NavigationTest(Node):
         # 목표 위치가 있고 도착하지 않은 경우
         
         if msg.data == "mannequin":
-            self.cancel_goal()
+            pass
+            # self.cancel_goal()
         
         else:
             pass
             # self.resume_goal()
                         
 
-    # 목표 위치로 이동
+    # 목표 위치로 이동 요청 함수
     def send_goal(self, x, y, w):
+        # 액션 서버가 켜질 때까지 대기
+        self.action_client.wait_for_server()
+        
         self.goal_pose = (x, y, w)
         
         goal_msg = NavigateToPose.Goal()
@@ -65,15 +74,17 @@ class NavigationTest(Node):
         goal_msg.pose.pose.position.y = y
         goal_msg.pose.pose.orientation.w = w
 
-        self.action_client.wait_for_server()
+        self.get_logger().info(f'목표 전송 중... X: {x}, Y: {y}')
+        
+        # 비동기로 목표를 보내고 응답 처리 콜백(goal_response_callback) 연결
         self._send_goal_future = self.action_client.send_goal_async(
             goal_msg,
             feedback_callback = self.feedback_callback
         )
-
         self._send_goal_future.add_done_callback(self.goal_response_callback)
         
-    
+        
+    # 실시간 피드백 콜백 함수(이동 중 주기적으로 실행됨)
     def feedback_callback(self, feedback_msg):
         current_time = self.get_clock().now()
         
@@ -83,54 +94,77 @@ class NavigationTest(Node):
         self.last_log_time = current_time
         
         feedback = feedback_msg.feedback
-        current_x = feedback.current_pose.pose.position.x
-        current_y = feedback.current_pose.pose.position.y
-        rem_distance = feedback.distance_remaining
-        rem_time = feedback.estimated_time_remaining.sec    
+        x = feedback.current_pose.pose.position.x
+        y = feedback.current_pose.pose.position.y
+        distance = feedback.distance_remaining
+        time = feedback.estimated_time_remaining.sec    
     
         # 터미널에 실시간 로그 출력
         self.get_logger().info(
-            f"현재 위치: ({current_x:.2f}, {current_y:.2f}) | "
-            f"남은 거리: {rem_distance:.2f}m | "
-            f"예상 남은 시간: {rem_time}초"
+            f"현재 위치: ({x:.2f}, {y:.2f}) | 남은 거리: {distance:.2f}m | 예상 남은 시간: {time}초"
         )
         
-     
+        
+    # 서버가 목표를 수락했는지 확인하는 콜백
     def goal_response_callback(self, future):
         goal_handle = future.result()
         
         if not goal_handle.accepted:
-            self.get_logger().info('목표가 거절되었습니다.')
+            self.get_logger().info('목표가 서버에 의해 거절되었습니다.')
             return
 
-        self.get_logger().info('목표가 승인되었습니다. 이동을 시작합니다.')
+        self.get_logger().info('목표가 수락되었습니다. 이동을 시작합니다.')
+        
+        # 취소 요청을 위한 goal_handle 저장
+        self._goal_handle = goal_handle
+        
+        # 최종 결과를 받기 위한 콜백 함수 등록
         self._get_result_future = goal_handle.get_result_async()
         self._get_result_future.add_done_callback(self.get_result_callback)
-        
-     
+
+
     def get_result_callback(self, future):
-        result = future.result().result
-        status = future.result().status
+        # 최종 도착 결과 확인
+        result = future.result()
+        status = result.status
         
-        # 대개 완수되면 status 코드가 4(STATUS_SUCCEEDED)가 됩니다.
-        self.get_logger().info(f'최종 결과 수신 - 상태 코드: {status}')
-        
+        if status == GoalStatus.STATUS_SUCCEEDED:
+            self.get_logger().info('목적지에 무사히 도착했습니다!')
+        elif status == GoalStatus.STATUS_CANCELED:
+            self.get_logger().info('사용자에 의해 경로가 취소되었습니다.')
+        else:
+            self.get_logger().info(f'자율주행 실패 (Status 코드: {status})')
+
               
-     # 목표 이동 취소   
+     # 경로 이동 취소 함수
     def cancel_goal(self):        
-        if hasattr(self, "_send_future"):
-            goal_handle = self._send_future.result()
+        if self._goal_handle is None:
+            self.get_logger().warn("취소할 활성화된 목표(Goal)가 없습니다.")
+            return
+        
+        self.get_logger().info("현재 이동 취소 요청 중...")
+
+        # 서버에 비동기 취소 요청을 보내고, 완료 시 실행할 콜백 함수 지정
+        cancel_future = self._goal_handle.cancel_goal_async()
+        cancel_future.add_done_callback(self.cancel_done_callback)
+    
+    # 취소 요청 결과가 돌아왔을 때 처리하는 콜백
+    def cancel_done_callback(self, future):
+        cancel_response = future.result()
+        
+        # 취소 중인 목표 리스트가 존재한다면 성공적으로 접수 완료
+        if len(cancel_response.goals_canceling) > 0:
+            self.get_logger().info("이동이 성공적으로 취소되었습니다.")
+            # 취소가 완료되었으므로 핸들 초기화
+            self._goal_handle = None
+        else:
+            self.get_logger().warn("이동 취소 요청이 거부되었습니다.")
             
-            if goal_handle:
-                goal_handle.cancel_goal_async()
-                self.get_logger().info("현재 이동 취소")
-
-
     # 취소된 목표 위치로 이동 재개
-    def resume_goal(self):
-        x, y, yaw = self.goal_pose
-        self.get_logger().info(f"Resume Goal → ({x}, {y}, yaw={yaw})")
-        self.send_goal(x, y, yaw)
+    # def resume_goal(self):
+    #     x, y, yaw = self.goal_pose
+    #     self.get_logger().info(f"Resume Goal → ({x}, {y}, yaw={yaw})")
+    #     self.send_goal(x, y, yaw)
 
 def main():
     rclpy.init()
