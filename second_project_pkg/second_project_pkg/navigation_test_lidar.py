@@ -10,16 +10,14 @@ from std_msgs.msg import String
 from sensor_msgs.msg import LaserScan
 from action_msgs.msg import GoalStatus
 
-from rclpy.duration import Duration
-
 
 # 목적지 정의
 sectors = {
-    "1": ( -1.8,   1.84, 1.0),  # A
-    "2": (  1.82,  1.78, 1.0),  # B
-    "3": (  1.75, -1.73, 1.0),  # C
-    "4": ( -1.8,  -1.8,  1.0),  # D
-    "5": (  0.0,  -0.68, 1.0),  # HOME
+    "1": ( 0.09,  2.37, 1.0),  # A
+    "2": ( 3.89,  2.33, 1.0),  # B
+    "3": ( 3.88, -1.42, 1.0),  # C
+    "4": ( 0.11, -1.47, 1.0),  # D
+    "5": ( 2.02, -0.30, 1.0),  # HOME
 }
         
 class NavigationTest(Node):
@@ -48,9 +46,6 @@ class NavigationTest(Node):
         self.is_driving = False
 
         self.front_distance = 999.0
-        
-        self.last_log_time = self.get_clock().now()
-        self.log_interval = Duration(seconds = 1)
     
     
     # Camera 구독 콜백
@@ -59,7 +54,7 @@ class NavigationTest(Node):
         if self.goal_reached == True:
             return
             
-        self.get_logger().info(f"Person: {msg.data}")
+        # self.get_logger().info(f"Object: {msg.data}")
  
         # 목표 위치가 설정된 후 주행 중일 때
         if self.is_driving:
@@ -74,7 +69,7 @@ class NavigationTest(Node):
         ranges = list(msg.ranges)
         self.front_distance = min(ranges[0:20] + ranges[340:360])
         
-        self.get_logger().info(f"F:{self.front_distance:.2f}")
+        # self.get_logger().info(f"F:{self.front_distance:.2f}")
         
         
     # 목표 위치로 이동 요청 함수
@@ -95,35 +90,9 @@ class NavigationTest(Node):
         self.get_logger().info(f'목표 전송 중... X: {x}, Y: {y}')
         
         # 비동기로 목표를 보내고 응답 처리 콜백(goal_response_callback) 연결
-        self._send_goal_future = self.action_client.send_goal_async(
-            goal_msg,
-            feedback_callback = self.feedback_callback
-        )
+        self._send_goal_future = self.action_client.send_goal_async(goal_msg)
         self._send_goal_future.add_done_callback(self.goal_response_callback)
-        
-        
-    # 실시간 피드백 콜백 함수(이동 중 주기적으로 실행됨) -> 디버깅용
-    def feedback_callback(self, feedback_msg):
-        return
-    
-        current_time = self.get_clock().now()
-        
-        if (current_time - self.last_log_time) < self.log_interval:
-            return
-        
-        self.last_log_time = current_time
-        
-        feedback = feedback_msg.feedback
-        x = feedback.current_pose.pose.position.x
-        y = feedback.current_pose.pose.position.y
-        distance = feedback.distance_remaining
-        time = feedback.estimated_time_remaining.sec    
-    
-        # 터미널에 실시간 로그 출력
-        self.get_logger().info(
-            f"현재 위치: ({x:.2f}, {y:.2f}) | 남은 거리: {distance:.2f}m | 예상 남은 시간: {time}초"
-        )
-        
+             
         
     # 서버가 목표를 수락했는지 확인하는 콜백
     def goal_response_callback(self, future):

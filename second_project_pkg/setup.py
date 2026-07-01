@@ -26,6 +26,7 @@ setup(
         'console_scripts': [
         	"navigation_coltroller  = second_project_pkg.navigation_coltroller:main",
             "navigation_test        = second_project_pkg.navigation_test:main",
+            "navigation_test_lidar  = second_project_pkg.navigation_test_lidar:main",
             "object_detector        = second_project_pkg.object_detector:main",
         ],
     },

@@ -5,7 +5,7 @@ from rclpy.node import Node
 from rclpy.action import ActionClient
 
 from nav2_msgs.action import NavigateToPose
-from geometry_msgs.msg import Twist, PoseStamped
+from geometry_msgs.msg import PoseStamped
 from std_msgs.msg import String
 from action_msgs.msg import GoalStatus
 
@@ -14,11 +14,11 @@ from rclpy.duration import Duration
 
 # 목적지 정의
 sectors = {
-    "1": ( -1.8,   1.84, 1.0),  # A
-    "2": (  1.82,  1.78, 1.0),  # B
-    "3": (  1.75, -1.73, 1.0),  # C
-    "4": ( -1.8,  -1.8,  1.0),  # D
-    "5": (  0.0,  -0.68, 1.0),  # HOME
+    "1": ( 0.09,  2.37, 1.0),  # A
+    "2": ( 3.89,  2.33, 1.0),  # B
+    "3": ( 3.88, -1.42, 1.0),  # C
+    "4": ( 0.11, -1.47, 1.0),  # D
+    "5": ( 2.02, -0.30, 1.0),  # HOME
 }
         
 class NavigationTest(Node):
@@ -28,10 +28,7 @@ class NavigationTest(Node):
         # Navigation2 액션 클라이언트
         self.action_client = ActionClient(self, NavigateToPose,'/navigate_to_pose')
         
-        # 정지를 위한 cmd 퍼블리셔
-        self.cmd_pub = self.create_publisher(Twist, '/cmd_vel', 10)
-        
-        # 사람 감지 토픽 구독
+        # Camera 토픽 구독
         self.sub = self.create_subscription(String, '/object_detected', self.detect_callback, 10)
         
         self.get_logger().info("Navigation Test Ready")
@@ -46,13 +43,13 @@ class NavigationTest(Node):
         self.last_log_time = self.get_clock().now()
         self.log_interval = Duration(seconds = 1)
     
-    # 사람 감지 콜백
+    # camera 토픽 구독 콜백
     def detect_callback(self, msg):
         # 목표 위치에 도달했거나 설정되지 않았을 경우는 처리하지 않음
         if self.goal_reached == True:
             return
             
-        self.get_logger().info(f"Person: {msg.data}")
+        self.get_logger().info(f"Object: {msg.data}")
  
         # 목표 위치가 설정된 후 주행 중일 때
         if self.is_driving:
@@ -184,6 +181,24 @@ class NavigationTest(Node):
         self.get_logger().info(f"Resume Goal → ({x}, {y}, yaw={yaw})")
         self.send_goal(x, y, yaw)
 
+
+def process_keyboard_input(node):
+    key = input("\n[1-5] Goal  [c] Cancel  [q] Quit : ")
+        
+    if key in sectors:
+        x, y, w = sectors[key]
+        node.send_goal(x, y, w)
+    elif key == "c":
+        node.cancel_goal()
+    elif key == "q":
+        print("프로그램 종료")
+        return True
+    else:
+        print("잘못된 입력입니다.")
+    
+    return False
+    
+
 def main():
     rclpy.init()
     node = NavigationTest()
@@ -191,22 +206,10 @@ def main():
      # spin을 별도 스레드에서 실행
     spin_thread = threading.Thread(target=rclpy.spin, args=(node,), daemon=True)
     spin_thread.start()
-    
-    print("키보드 입력 대기: 1~5 → 해당 위치 이동, c → 취소, q → 종료")
 
     while rclpy.ok():
-        key = input("\n[1-5] Goal  [c] Cancel  [q] Quit : ")
-        
-        if key in sectors:
-            x, y, w = sectors[key]
-            node.send_goal(x, y, w)
-        elif key == "c":
-            node.cancel_goal()
-        elif key == "q":
-            print("프로그램 종료")
-            break
-        else:
-            print("잘못된 입력입니다.")
+        if process_keyboard_input(node):
+            break;
              
     node.destroy_node()
     rclpy.shutdown()
