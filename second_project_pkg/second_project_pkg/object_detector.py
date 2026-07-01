@@ -32,9 +32,9 @@ class ObjectDetector(Node):
                 for box in r.boxes:
                     cls_id = int(box.cls.item())
                     if cls_id == 0:         # 0 = mannequin
-                        detected_name = "mannequin"
+                        detected_name = "Mannequin"
                     elif cls_id == 1:       # 1 = QR Code
-                        detected_name = "qr_code"
+                        detected_name = "Qr_code"
 
             # 토픽 발행
             self.pub.publish(String(data = detected_name))

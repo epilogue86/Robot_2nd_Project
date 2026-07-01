@@ -14,11 +14,11 @@ from rclpy.duration import Duration
 
 # 목적지 정의
 sectors = {
-    "1": (  0.02,  2.42, 1.0),  # A
-    "2": (  4.02,  2.54, 1.0),  # B
-    "3": (  4.16, -1.66, 1.0),  # C
-    "4": ( -0.03, -1.64, 1.0),  # D
-    "5": (  2.03, -0.36, 1.0),  # HOME
+    "1": ( -1.8,   1.84, 1.0),  # A
+    "2": (  1.82,  1.78, 1.0),  # B
+    "3": (  1.75, -1.73, 1.0),  # C
+    "4": ( -1.8,  -1.8,  1.0),  # D
+    "5": (  0.0,  -0.68, 1.0),  # HOME
 }
         
 class NavigationTest(Node):
@@ -38,26 +38,30 @@ class NavigationTest(Node):
         
         self._goal_handle = None
         self._send_goal_future = None
-        
         self.goal_pose = None
         
+        self.goal_reached = True
+        self.is_driving = False
+
         self.last_log_time = self.get_clock().now()
         self.log_interval = Duration(seconds = 1)
     
     # 사람 감지 콜백
     def detect_callback(self, msg):
-        # self.get_logger().info(f"Person: {msg.data}, dectected:{self.is_person_detected}, goal_pose:{self.goal_pose}")
-        
-        # 목표 위치가 있고 도착하지 않은 경우
-        
-        if msg.data == "mannequin":
-            pass
-            # self.cancel_goal()
-        
-        else:
-            pass
-            # self.resume_goal()
-                        
+        # 목표 위치에 도달했거나 설정되지 않았을 경우는 처리하지 않음
+        if self.goal_reached == True:
+            return
+            
+        self.get_logger().info(f"Person: {msg.data}")
+ 
+        # 목표 위치가 설정된 후 주행 중일 때
+        if self.is_driving:
+            if msg.data == "Mannequin":
+                self.cancel_goal()
+        else:    
+            if msg.data == "Nothing":
+                self.resume_goal()
+
 
     # 목표 위치로 이동 요청 함수
     def send_goal(self, x, y, w):
@@ -65,7 +69,7 @@ class NavigationTest(Node):
         self.action_client.wait_for_server()
         
         self.goal_pose = (x, y, w)
-        
+            
         goal_msg = NavigateToPose.Goal()
         goal_msg.pose = PoseStamped()
         goal_msg.pose.header.frame_id = 'map'
@@ -84,8 +88,10 @@ class NavigationTest(Node):
         self._send_goal_future.add_done_callback(self.goal_response_callback)
         
         
-    # 실시간 피드백 콜백 함수(이동 중 주기적으로 실행됨)
+    # 실시간 피드백 콜백 함수(이동 중 주기적으로 실행됨) -> 디버깅용
     def feedback_callback(self, feedback_msg):
+        return
+    
         current_time = self.get_clock().now()
         
         if (current_time - self.last_log_time) < self.log_interval:
@@ -111,9 +117,14 @@ class NavigationTest(Node):
         
         if not goal_handle.accepted:
             self.get_logger().info('목표가 서버에 의해 거절되었습니다.')
+            self.goal_reached = True
+            
             return
 
         self.get_logger().info('목표가 수락되었습니다. 이동을 시작합니다.')
+        
+        self.goal_reached = False
+        self.is_driving = True
         
         # 취소 요청을 위한 goal_handle 저장
         self._goal_handle = goal_handle
@@ -129,11 +140,16 @@ class NavigationTest(Node):
         status = result.status
         
         if status == GoalStatus.STATUS_SUCCEEDED:
+            self.goal_reached = True
+            self.is_driving = False
+            
             self.get_logger().info('목적지에 무사히 도착했습니다!')
         elif status == GoalStatus.STATUS_CANCELED:
-            self.get_logger().info('사용자에 의해 경로가 취소되었습니다.')
+            self.is_driving = False
+            
+            self.get_logger().info('사용자에 의해 경로가 취소되었습니다.')            
         else:
-            self.get_logger().info(f'자율주행 실패 (Status 코드: {status})')
+            pass
 
               
      # 경로 이동 취소 함수
@@ -155,16 +171,18 @@ class NavigationTest(Node):
         # 취소 중인 목표 리스트가 존재한다면 성공적으로 접수 완료
         if len(cancel_response.goals_canceling) > 0:
             self.get_logger().info("이동이 성공적으로 취소되었습니다.")
-            # 취소가 완료되었으므로 핸들 초기화
             self._goal_handle = None
+            self.is_driving = False
         else:
             self.get_logger().warn("이동 취소 요청이 거부되었습니다.")
             
     # 취소된 목표 위치로 이동 재개
-    # def resume_goal(self):
-    #     x, y, yaw = self.goal_pose
-    #     self.get_logger().info(f"Resume Goal → ({x}, {y}, yaw={yaw})")
-    #     self.send_goal(x, y, yaw)
+    def resume_goal(self):
+        self.is_canceled = False
+        x, y, yaw = self.goal_pose
+        
+        self.get_logger().info(f"Resume Goal → ({x}, {y}, yaw={yaw})")
+        self.send_goal(x, y, yaw)
 
 def main():
     rclpy.init()
