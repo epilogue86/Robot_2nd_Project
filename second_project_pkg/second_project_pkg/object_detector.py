@@ -1,4 +1,3 @@
-import os
 import cv2
 import rclpy
 
@@ -12,53 +11,72 @@ class ObjectDetector(Node):
         super().__init__('object_detector')
         
         self.pub = self.create_publisher(String, '/object_detected', 10)
-        self.cap = cv2.VideoCapture(0)
+        self.timer = self.create_timer(0.05, self.publish_result)
         
-        model_path = "/home/user/ros2_ws/src/second_project_pkg/second_project_pkg/best.pt"
+        self.cap = cv2.VideoCapture(4)
+        
+        model_path = "/home/jonghun/ros2_ws/src/second_project_pkg/second_project_pkg/best.pt"
         self.model = YOLO(model_path)
 
-        
-    def loop(self):
-        while rclpy.ok():
-            ret, frame = self.cap.read()
+        self.detected_name = "Nothing"
+                
+    def detect(self):
+        ret, frame = self.cap.read()
             
-            if not ret:
-                continue
+        if not ret:
+            return
 
-            results = self.model.predict(frame, conf=0.25)
-            detected_name = "Nothing"
+        results = self.model.predict(frame, conf=0.25, verbose=False)
 
-            for r in results:
-                for box in r.boxes:
-                    cls_id = int(box.cls.item())
-                    if cls_id == 0:         # 0 = mannequin
-                        detected_name = "Mannequin"
-                    elif cls_id == 1:       # 1 = QR Code
-                        detected_name = "Qr_code"
+        annotated_frame = results[0].plot()
+        cv2.imshow("Object Detector", annotated_frame)
+        
+        key = cv2.waitKey(1)
 
-            # 토픽 발행
-            self.pub.publish(String(data = detected_name))
+        if key & 0xFF == 27:
+            self.get_logger().info("ESC pressed. Shutting down.")
+            
+            self.cap.release()
+            cv2.destroyAllWindows()
+            rclpy.shutdown()
+            
+            return
+        
+        self.detected_name = "Nothing"
+        
+        for result in results:
+            for box in result.boxes:
+                cls = int(box.cls[0])
+                label = self.model.names[cls]
 
-            # 디버깅용 화면 표시
-            annotated_frame = results[0].plot()
-            cv2.imshow("Object Detector", annotated_frame)
+                if label == "mannequin":
+                    self.detected_name = "Mannequin"
+                    return
 
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
+
+    def publish_result(self):
+        self.detect()
+        
+        msg = String()
+        msg.data = self.detected_name
+
+        self.pub.publish(msg)
+
 
 def main():
     rclpy.init()
     node = ObjectDetector()
     
     try:
-        node.loop()
-    except KeyboardInterrupt:
-        pass
+        rclpy.spin(node)
+    finally:
+        node.cap.release()
+        cv2.destroyAllWindows()
+        node.destroy_node()
+
+        if rclpy.ok():
+            rclpy.shutdown()
     
-    node.cap.release()
-    
-    cv2.destroyAllWindows()
-    rclpy.shutdown()
 
 if __name__ == '__main__':
     main()
