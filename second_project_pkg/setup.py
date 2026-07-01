@@ -28,6 +28,7 @@ setup(
             "navigation_test        = second_project_pkg.navigation_test:main",
             "navigation_test_lidar  = second_project_pkg.navigation_test_lidar:main",
             "object_detector        = second_project_pkg.object_detector:main",
+            "object_detector_gazebo = second_project_pkg.object_detector_gazebo:main",
         ],
     },
 )
