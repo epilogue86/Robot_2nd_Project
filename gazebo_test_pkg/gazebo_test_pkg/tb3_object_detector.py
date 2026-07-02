@@ -13,7 +13,16 @@ from pyzbar import pyzbar
 
 SERVER_IP = "192.168.45.146"
 SERVER_PORT = 9091
+QR_UDP_PORT = 9092
 PACKET_LIMIT = 65000
+
+# 📦 QR 코드 데이터에 매핑할 고정 상품 정보 (ID, 상품명, 총 재고량)
+PRODUCT_MASTER = {
+    "1": {"id": "1", "name": "A", "total": "10"},
+    "2": {"id": "2", "name": "B", "total": "10"},
+    "3": {"id": "3", "name": "C", "total": "10"},
+    "4": {"id": "4", "name": "D", "total": "10"}
+}
 
 
 class Tb3ObjectDetector(Node):
@@ -39,8 +48,14 @@ class Tb3ObjectDetector(Node):
         cv2.namedWindow("Object Detector", cv2.WINDOW_NORMAL)
         cv2.resizeWindow("Object Detector", 480, 320)
         
+        # QR Code 처리 관련 변수
+        self.last_detected_qr = ""  
+        self.last_sent_qr = ""      
+        self.frames_without_qr = 0
+    
         # 관제페이지에 데이터 전송을 위한 통신 변수
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.qr_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         
         # 타이머 생성
         self.yolo_timer = self.create_timer(0.1, self.yolo_detect_timer)
@@ -99,8 +114,50 @@ class Tb3ObjectDetector(Node):
 
 
     def qr_detect_timer(self):
-        pass
-
+        if self.frame is None:
+            return
+        
+        frame = self.frame.copy()
+        decoded_objects = pyzbar.decode(frame)
+        
+        last_detected_qr = self.last_detected_qr
+        last_sent_qr = self.last_sent_qr
+        frames_without_qr = self.frames_without_qr
+        
+        if not decoded_objects:
+            frames_without_qr += 1
+            
+            if frames_without_qr > 15:
+                last_detected_qr = ""  # QR이 화면에서 사라지면 리셋
+        else:
+            frames_without_qr = 0
+        
+        for obj in decoded_objects:
+            qr_raw_data = obj.data.decode('utf-8').strip()
+            
+            if qr_raw_data != last_detected_qr:
+                last_detected_qr = qr_raw_data
+                
+                # 마스터 데이터에 등록된 상품(1~4)인지 검증
+                if qr_raw_data in PRODUCT_MASTER:
+                    if qr_raw_data == last_sent_qr:
+                        print(f"⚠️ [BLOCK] 상품 {qr_raw_data}번 연속 감지 차단")
+                        continue  
+                    
+                    # 해당 QR의 매핑 데이터 가져오기
+                    prod = PRODUCT_MASTER[qr_raw_data]
+                    
+                    # 🎯 [요구사항 반영] 상품 ID, 상품명, 수량 패킷 조립 ("1 A 10")
+                    packet_string = f"{prod['id']} {prod['name']} {prod['total']}"
+                    
+                    # 9092번 포트로 패킷 전송 (차감 로직 없음)
+                    self.qr_sock.sendto(packet_string.encode('utf-8'), (SERVER_IP, QR_UDP_PORT))
+                    print(f"🎯 [QR SENT to 9092] -> \"{packet_string}\"")
+                    
+                    last_sent_qr = qr_raw_data
+                else:
+                    print(f"❌ [UNKNOWN QR] 미등록 QR 인식됨: {qr_raw_data}")
+                                
 
     def camera_streaming_timer(self):
         # self.get_logger().info("camera_streaming_timer")
@@ -129,6 +186,7 @@ def main():
         rclpy.spin(node)
     finally:
         node.sock.close()
+        node.qr_sock.close()
         cv2.destroyAllWindows()
         node.destroy_node()
 
