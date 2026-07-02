@@ -54,14 +54,14 @@ class tb3_pilot(Node):
         if self.goal_reached == True:
             return
         
-        self.get_logger().info(f"driving: {self.is_driving} | Object: {msg.data} | {self.front_distance}m")
+        # self.get_logger().info(f"driving: {self.is_driving} | Object: {msg.data} | {self.front_distance}m")
                 
         # 목표 위치가 설정된 후 주행 중일 때
         if self.is_driving:
-            if msg.data == "Mannequin" and self.front_distance <= 0.6:
+            if msg.data == "Mannequin" and self.front_distance <= 1.0:
                 self.cancel_goal()
         else:    
-            if msg.data == "Nothing" or (msg.data == "Mannequin" and self.front_distance > 0.6):
+            if msg.data == "Nothing" or (msg.data == "Mannequin" and self.front_distance > 1.0):
                 self.resume_goal()
             
 
@@ -184,6 +184,7 @@ def main():
             x, y, w = sectors[key]
             node.send_goal(x, y, w)
         elif key == "c":
+            node.goal_reached = True
             node.cancel_goal()
         elif key == "q":
             print("프로그램 종료")
