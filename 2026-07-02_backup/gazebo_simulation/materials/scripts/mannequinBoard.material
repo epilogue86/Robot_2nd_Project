@@ -1,0 +1,15 @@
+material MannequinBoard/Texture
+{
+    technique
+    {
+        pass
+        {
+            lighting on
+
+            texture_unit
+            {
+                texture mannequin.png
+            }
+        }
+    }
+}
