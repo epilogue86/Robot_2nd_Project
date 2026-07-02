@@ -266,6 +266,150 @@
     </model>
 
 
+    <!-- QR Code Board 1 -->
+    <model name="qr_code_board1">
+      <static>true</static>
+      <!-- x y z roll pitch yaw -->
+      <pose>-1.8 2.45 0.2 0 0 0</pose>
+
+      <link name="link">
+        <!-- 충돌 영역 -->
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.4 0.1 0.4</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <!-- 화면에 보이는 Box -->
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.4 0.1 0.4</size>
+            </box>
+          </geometry>
+
+          <material>
+            <script>
+              <uri>file:///opt/ros/humble/share/turtlebot3_gazebo/materials/scripts</uri>
+              <uri>file:///opt/ros/humble/share/turtlebot3_gazebo/materials/textures</uri>
+              <name>QRCodeBoard1/Texture</name>
+            </script>
+          </material>
+        </visual>
+
+      </link>
+    </model>
+
+    <!-- QR Code Board 2 -->
+    <model name="qr_code_board2">
+      <static>true</static>
+      <!-- x y z roll pitch yaw -->
+      <pose>1.5 2.45 0.2 0 0 0</pose>
+
+      <link name="link">
+        <!-- 충돌 영역 -->
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.4 0.1 0.4</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <!-- 화면에 보이는 Box -->
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.4 0.1 0.4</size>
+            </box>
+          </geometry>
+
+          <material>
+            <script>
+              <uri>file:///opt/ros/humble/share/turtlebot3_gazebo/materials/scripts</uri>
+              <uri>file:///opt/ros/humble/share/turtlebot3_gazebo/materials/textures</uri>
+              <name>QRCodeBoard2/Texture</name>
+            </script>
+          </material>
+        </visual>
+
+      </link>
+    </model>
+
+    <!-- QR Code Board 3 -->
+    <model name="qr_code_board3">
+      <static>true</static>
+      <!-- x y z roll pitch yaw -->
+      <pose>-2.45 -1.5 0.2 0 0 0</pose>
+
+      <link name="link">
+        <!-- 충돌 영역 -->
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.1 0.4 0.4</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <!-- 화면에 보이는 Box -->
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.1 0.4 0.4</size>
+            </box>
+          </geometry>
+
+          <material>
+            <script>
+              <uri>file:///opt/ros/humble/share/turtlebot3_gazebo/materials/scripts</uri>
+              <uri>file:///opt/ros/humble/share/turtlebot3_gazebo/materials/textures</uri>
+              <name>QRCodeBoard3/Texture</name>
+            </script>
+          </material>
+        </visual>
+
+      </link>
+    </model>
+
+    <!-- QR Code Board 4 -->
+    <model name="qr_code_board4">
+      <static>true</static>
+      <!-- x y z roll pitch yaw -->
+      <pose>2.45 -1.5 0.2 0 0 0</pose>
+
+      <link name="link">
+        <!-- 충돌 영역 -->
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.1 0.4 0.4</size>
+            </box>
+          </geometry>
+        </collision>
+
+        <!-- 화면에 보이는 Box -->
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.1 0.4 0.4</size>
+            </box>
+          </geometry>
+
+          <material>
+            <script>
+              <uri>file:///opt/ros/humble/share/turtlebot3_gazebo/materials/scripts</uri>
+              <uri>file:///opt/ros/humble/share/turtlebot3_gazebo/materials/textures</uri>
+              <name>QRCodeBoard4/Texture</name>
+            </script>
+          </material>
+        </visual>
+
+      </link>
+    </model>
+
   </world>
 
 </sdf>

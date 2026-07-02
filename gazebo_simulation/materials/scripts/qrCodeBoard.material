@@ -1,0 +1,63 @@
+material QRCodeBoard1/Texture
+{
+    technique
+    {
+        pass
+        {
+            lighting on
+
+            texture_unit
+            {
+                texture qr_code_1.png
+            }
+        }
+    }
+}
+
+material QRCodeBoard2/Texture
+{
+    technique
+    {
+        pass
+        {
+            lighting on
+
+            texture_unit
+            {
+                texture qr_code_2.png
+            }
+        }
+    }
+}
+
+material QRCodeBoard3/Texture
+{
+    technique
+    {
+        pass
+        {
+            lighting on
+
+            texture_unit
+            {
+                texture qr_code_3.png
+            }
+        }
+    }
+}
+
+material QRCodeBoard4/Texture
+{
+    technique
+    {
+        pass
+        {
+            lighting on
+
+            texture_unit
+            {
+                texture qr_code_4.png
+            }
+        }
+    }
+}
