@@ -24,6 +24,11 @@ setup(
     },
     entry_points={
         'console_scripts': [
+            "tb3_pilot              = warehouse_pkg.tb3_pilot:main",
+            "tb3_object_detector    = warehouse_pkg.tb3_object_detector:main",
+            "robot_logger           = warehouse_pkg.robot_logger:main",
+            "turtlebot_server       = warehouse_pkg.turtlebot_server:main",
+            "web_cam                = warehouse_pkg.web_cam:main",
         ],
     },
 )
