@@ -7,8 +7,8 @@ import os
 import socket
 import math
 
-# SERVER_IP = "192.168.0.33"
-SERVER_IP = "192.168.0.37"  # 호웅님  
+SERVER_IP = "192.168.0.33"    # 종훈
+# SERVER_IP = "192.168.0.37"    # 호웅님  
 # SERVER_IP = "192.168.45.146"
 ROBOT_UDP_PORT = 9000
 
