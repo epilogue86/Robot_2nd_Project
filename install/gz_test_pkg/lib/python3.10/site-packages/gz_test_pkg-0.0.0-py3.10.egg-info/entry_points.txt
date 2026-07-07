@@ -1,0 +1,5 @@
+[console_scripts]
+robot_logger.py = gz_test_pkg.robot_logger:main
+tb3_object_detector.py = gz_test_pkg.tb3_object_detector:main
+tb3_pilot.py = gz_test_pkg.tb3_pilot:main
+

@@ -1,0 +1,48 @@
+[0.497s] Invoking command in '/home/jonghun/Robot_2nd_Project/gz_test_pkg': PYTHONPATH=/home/jonghun/Robot_2nd_Project/build/gz_test_pkg/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/jonghun/Robot_2nd_Project/install/gz_test_pkg/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../build/gz_test_pkg build --build-base /home/jonghun/Robot_2nd_Project/build/gz_test_pkg/build install --record /home/jonghun/Robot_2nd_Project/build/gz_test_pkg/install.log --install-scripts $base/lib/gz_test_pkg --single-version-externally-managed install_data
+[0.630s] running egg_info
+[0.630s] creating ../build/gz_test_pkg/gz_test_pkg.egg-info
+[0.630s] writing ../build/gz_test_pkg/gz_test_pkg.egg-info/PKG-INFO
+[0.630s] writing dependency_links to ../build/gz_test_pkg/gz_test_pkg.egg-info/dependency_links.txt
+[0.630s] writing entry points to ../build/gz_test_pkg/gz_test_pkg.egg-info/entry_points.txt
+[0.630s] writing requirements to ../build/gz_test_pkg/gz_test_pkg.egg-info/requires.txt
+[0.630s] writing top-level names to ../build/gz_test_pkg/gz_test_pkg.egg-info/top_level.txt
+[0.630s] writing manifest file '../build/gz_test_pkg/gz_test_pkg.egg-info/SOURCES.txt'
+[0.630s] reading manifest file '../build/gz_test_pkg/gz_test_pkg.egg-info/SOURCES.txt'
+[0.630s] writing manifest file '../build/gz_test_pkg/gz_test_pkg.egg-info/SOURCES.txt'
+[0.631s] running build
+[0.631s] running build_py
+[0.631s] creating /home/jonghun/Robot_2nd_Project/build/gz_test_pkg/build
+[0.631s] creating /home/jonghun/Robot_2nd_Project/build/gz_test_pkg/build/lib
+[0.631s] creating /home/jonghun/Robot_2nd_Project/build/gz_test_pkg/build/lib/gz_test_pkg
+[0.631s] copying gz_test_pkg/__init__.py -> /home/jonghun/Robot_2nd_Project/build/gz_test_pkg/build/lib/gz_test_pkg
+[0.631s] copying gz_test_pkg/robot_logger.py -> /home/jonghun/Robot_2nd_Project/build/gz_test_pkg/build/lib/gz_test_pkg
+[0.631s] copying gz_test_pkg/tb3_object_detector.py -> /home/jonghun/Robot_2nd_Project/build/gz_test_pkg/build/lib/gz_test_pkg
+[0.631s] copying gz_test_pkg/tb3_pilot.py -> /home/jonghun/Robot_2nd_Project/build/gz_test_pkg/build/lib/gz_test_pkg
+[0.631s] running install
+[0.631s] running install_lib
+[0.631s] creating /home/jonghun/Robot_2nd_Project/install/gz_test_pkg/lib/python3.10/site-packages/gz_test_pkg
+[0.632s] copying /home/jonghun/Robot_2nd_Project/build/gz_test_pkg/build/lib/gz_test_pkg/__init__.py -> /home/jonghun/Robot_2nd_Project/install/gz_test_pkg/lib/python3.10/site-packages/gz_test_pkg
+[0.632s] copying /home/jonghun/Robot_2nd_Project/build/gz_test_pkg/build/lib/gz_test_pkg/robot_logger.py -> /home/jonghun/Robot_2nd_Project/install/gz_test_pkg/lib/python3.10/site-packages/gz_test_pkg
+[0.632s] copying /home/jonghun/Robot_2nd_Project/build/gz_test_pkg/build/lib/gz_test_pkg/tb3_object_detector.py -> /home/jonghun/Robot_2nd_Project/install/gz_test_pkg/lib/python3.10/site-packages/gz_test_pkg
+[0.632s] copying /home/jonghun/Robot_2nd_Project/build/gz_test_pkg/build/lib/gz_test_pkg/tb3_pilot.py -> /home/jonghun/Robot_2nd_Project/install/gz_test_pkg/lib/python3.10/site-packages/gz_test_pkg
+[0.632s] byte-compiling /home/jonghun/Robot_2nd_Project/install/gz_test_pkg/lib/python3.10/site-packages/gz_test_pkg/__init__.py to __init__.cpython-310.pyc
+[0.632s] byte-compiling /home/jonghun/Robot_2nd_Project/install/gz_test_pkg/lib/python3.10/site-packages/gz_test_pkg/robot_logger.py to robot_logger.cpython-310.pyc
+[0.633s] byte-compiling /home/jonghun/Robot_2nd_Project/install/gz_test_pkg/lib/python3.10/site-packages/gz_test_pkg/tb3_object_detector.py to tb3_object_detector.cpython-310.pyc
+[0.634s] byte-compiling /home/jonghun/Robot_2nd_Project/install/gz_test_pkg/lib/python3.10/site-packages/gz_test_pkg/tb3_pilot.py to tb3_pilot.cpython-310.pyc
+[0.634s] running install_data
+[0.634s] creating /home/jonghun/Robot_2nd_Project/install/gz_test_pkg/share/ament_index
+[0.634s] creating /home/jonghun/Robot_2nd_Project/install/gz_test_pkg/share/ament_index/resource_index
+[0.634s] creating /home/jonghun/Robot_2nd_Project/install/gz_test_pkg/share/ament_index/resource_index/packages
+[0.634s] copying resource/gz_test_pkg -> /home/jonghun/Robot_2nd_Project/install/gz_test_pkg/share/ament_index/resource_index/packages
+[0.634s] copying package.xml -> /home/jonghun/Robot_2nd_Project/install/gz_test_pkg/share/gz_test_pkg
+[0.634s] creating /home/jonghun/Robot_2nd_Project/install/gz_test_pkg/share/gz_test_pkg/launch
+[0.634s] copying launch/tb3_simulation.launch.py -> /home/jonghun/Robot_2nd_Project/install/gz_test_pkg/share/gz_test_pkg/launch
+[0.634s] copying launch/tb3_nodes.launch.py -> /home/jonghun/Robot_2nd_Project/install/gz_test_pkg/share/gz_test_pkg/launch
+[0.634s] running install_egg_info
+[0.635s] Copying ../build/gz_test_pkg/gz_test_pkg.egg-info to /home/jonghun/Robot_2nd_Project/install/gz_test_pkg/lib/python3.10/site-packages/gz_test_pkg-0.0.0-py3.10.egg-info
+[0.635s] running install_scripts
+[0.653s] Installing robot_logger.py script to /home/jonghun/Robot_2nd_Project/install/gz_test_pkg/lib/gz_test_pkg
+[0.653s] Installing tb3_object_detector.py script to /home/jonghun/Robot_2nd_Project/install/gz_test_pkg/lib/gz_test_pkg
+[0.653s] Installing tb3_pilot.py script to /home/jonghun/Robot_2nd_Project/install/gz_test_pkg/lib/gz_test_pkg
+[0.653s] writing list of installed files to '/home/jonghun/Robot_2nd_Project/build/gz_test_pkg/install.log'
+[0.666s] Invoked command in '/home/jonghun/Robot_2nd_Project/gz_test_pkg' returned '0': PYTHONPATH=/home/jonghun/Robot_2nd_Project/build/gz_test_pkg/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/jonghun/Robot_2nd_Project/install/gz_test_pkg/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../build/gz_test_pkg build --build-base /home/jonghun/Robot_2nd_Project/build/gz_test_pkg/build install --record /home/jonghun/Robot_2nd_Project/build/gz_test_pkg/install.log --install-scripts $base/lib/gz_test_pkg --single-version-externally-managed install_data

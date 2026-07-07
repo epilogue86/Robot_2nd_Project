@@ -1,0 +1,6 @@
+[console_scripts]
+robot_logger.py = warehouse_test_pkg.robot_logger:main
+tb3_object_detector.py = warehouse_test_pkg.tb3_object_detector:main
+tb3_pilot.py = warehouse_test_pkg.tb3_pilot:main
+tb3_state_reporter.py = warehouse_test_pkg.tb3_state_reporter:main
+
