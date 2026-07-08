@@ -1,0 +1,6 @@
+# 각 하위 폴더 안의 node_modules와 빌드 폴더를 확실하게 지정
+control-server/node_modules/
+react/node_modules/
+react/build/
+react/dist/
+.env

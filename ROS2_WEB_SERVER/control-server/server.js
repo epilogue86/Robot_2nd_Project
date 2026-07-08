@@ -11,10 +11,10 @@ const wss = new WebSocket.Server({ server });
 // 📦 1. 상품 마스터 데이터 정의 (QR 1~4번에 매핑)
 // ----------------------------------------------------
 const productMaster = {
-  '1': { id: 1, name: 'A', total: 10 },
-  '2': { id: 2, name: 'B', total: 10 },
-  '3': { id: 3, name: 'C', total: 10 },
-  '4': { id: 4, name: 'D', total: 10 }
+  '1': { id: 1, name: '과자', total: 35 },
+  '2': { id: 2, name: '쿠키', total: 20 },
+  '3': { id: 3, name: '껌', total: 70 },
+  '4': { id: 4, name: '사탕', total: 50 }
 };
 
 // ----------------------------------------------------
